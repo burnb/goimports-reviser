@@ -388,23 +388,23 @@ func rebuildImports(
 
 		linesCounter--
 
-		if linesCounter == 0 && (len(generalImports) > 0 || len(projectLocalPkgs) > 0 || len(projectImports) > 0) {
+		if linesCounter == 0 && (len(projectLocalPkgs) > 0 || len(projectImports) > 0 || len(generalImports) > 0) {
 			spec = &ast.ImportSpec{Path: &ast.BasicLit{Value: "", Kind: token.STRING}}
 
 			specs = append(specs, spec)
 		}
 	}
 
-	linesCounter = len(generalImports)
-	for _, generalImport := range generalImports {
+	linesCounter = len(projectImports)
+	for _, projectImport := range projectImports {
 		spec := &ast.ImportSpec{
-			Path: &ast.BasicLit{Value: importWithComment(generalImport, commentsMetadata), Kind: tok},
+			Path: &ast.BasicLit{Value: importWithComment(projectImport, commentsMetadata), Kind: tok},
 		}
 		specs = append(specs, spec)
 
 		linesCounter--
 
-		if linesCounter == 0 && (len(projectLocalPkgs) > 0 || len(projectImports) > 0) {
+		if linesCounter == 0 && (len(projectLocalPkgs) > 0 || len(generalImports) > 0) {
 			spec = &ast.ImportSpec{Path: &ast.BasicLit{Value: "", Kind: token.STRING}}
 
 			specs = append(specs, spec)
@@ -420,16 +420,16 @@ func rebuildImports(
 
 		linesCounter--
 
-		if linesCounter == 0 && len(projectImports) > 0 {
+		if linesCounter == 0 && len(generalImports) > 0 {
 			spec = &ast.ImportSpec{Path: &ast.BasicLit{Value: "", Kind: token.STRING}}
 
 			specs = append(specs, spec)
 		}
 	}
 
-	for _, projectImport := range projectImports {
+	for _, generalImport := range generalImports {
 		spec := &ast.ImportSpec{
-			Path: &ast.BasicLit{Value: importWithComment(projectImport, commentsMetadata), Kind: tok},
+			Path: &ast.BasicLit{Value: importWithComment(generalImport, commentsMetadata), Kind: tok},
 		}
 		specs = append(specs, spec)
 	}

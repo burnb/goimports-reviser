@@ -33,7 +33,7 @@ goimports-reviser -file-path ./reviser/reviser.go -rm-unused -set-alias -format
 ```text
 Usage of goimports-reviser:
   -file-path string
-        File path to fix imports(ex.: ./reviser/reviser.go). Required parameter.
+        File path to fix imports(ex.: ./reviser/reviser.go). The path could be a directory for the fix in all go files in dir recursively. Required parameter.
   -format
         Option will perform additional formatting. Optional parameter.
   -list-diff
@@ -88,10 +88,10 @@ package testdata
 import (
 	"bytes"
 	"log"
+
+	"github.com/incu6us/goimports-reviser/testdata/innderpkg"
 	
 	"github.com/pkg/errors"
-	
-	"github.com/incu6us/goimports-reviser/testdata/innderpkg"
 )
 ```
 
@@ -126,11 +126,11 @@ package testdata // goimports-reviser/testdata
 import (
 	"fmt" // fmt package
 
-	"github.com/pkg/errors" // custom package
-
+	"goimports-reviser/pkg"
+	
 	"github.com/incu6us/goimports-reviser/pkg" // this is a local package which is not a part of the project
 
-	"goimports-reviser/pkg"
+	"github.com/pkg/errors" // custom package
 )
 ```
 

@@ -12,6 +12,8 @@ import (
 
 	"github.com/incu6us/goimports-reviser/v2/helper"
 	"github.com/incu6us/goimports-reviser/v2/reviser"
+	"io/fs"
+	"path/filepath"
 )
 
 const (
@@ -170,36 +172,61 @@ func main() {
 		os.Exit(1)
 	}
 
-	formattedOutput, hasChange, err := reviser.Execute(projectName, filePath, localPkgPrefixes, options...)
+	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		log.Fatalf("%+v", errors.WithStack(err))
 	}
 
-	if !hasChange && *listFileName {
-		return
+	if fileInfo.IsDir() {
+		err = filepath.WalkDir(filePath, func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			fmt.Println(path)
+			if !d.IsDir() && filepath.Ext(path) == ".go" {
+				return formatFile(path, projectName, options)
+			}
+
+			return nil
+		})
+	} else {
+		err = formatFile(filePath, projectName, options)
 	}
+
+	if err != nil {
+		log.Fatalf("%+v", errors.WithStack(err))
+	}
+}
+
+func formatFile(filePath, projectName string, options reviser.Options) error {
+	formattedOutput, hasChange, err := reviser.Execute(projectName, filePath, localPkgPrefixes, options...)
+	if err != nil {
+		return fmt.Errorf("%+v", errors.WithStack(err))
+	}
+
+	if !hasChange && *listFileName {
+		return nil
+	}
+
 	if hasChange && *listFileName && output != "write" {
 		fmt.Println(filePath)
 	} else if output == "stdout" || filePath == reviser.StandardInput {
 		fmt.Print(string(formattedOutput))
 	} else if output == "file" || output == "write" {
 		if !hasChange {
-			return
+			return nil
 		}
-
 		if err := ioutil.WriteFile(filePath, formattedOutput, 0644); err != nil {
-			log.Fatalf("failed to write fixed result to file(%s): %+v", filePath, errors.WithStack(err))
+			return fmt.Errorf("failed to write fixed result to file(%s): %+v", filePath, errors.WithStack(err))
 		}
 		if *listFileName {
 			fmt.Println(filePath)
 		}
 	} else {
-		log.Fatalf(`invalid output "%s" specified`, output)
+		return fmt.Errorf(`invalid output "%s" specified`, output)
 	}
 
-	if hasChange && *setExitStatus {
-		os.Exit(1)
-	}
+	return nil
 }
 
 func validateRequiredParam(filePath string) error {
